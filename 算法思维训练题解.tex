@@ -68,12 +68,13 @@
 
 	\subsubsection{数据范围}
 
-	\begin{itemize}
-		\item 对于 30\% 的数据，$|s|\le 10$。
-		\item 对于 50\% 的数据，$|s|\le 100$。
-		\item 对于 70\% 的数据，$|s|\le 10^{3}$。
-		\item 对于 100\% 的数据，$1\le |s|\le 10^{5}$，$\Sigma=\{\texttt{0},\texttt{1},\texttt{2}\}$。
-	\end{itemize}
+	对于 30\% 的数据，$|s|\le 10$。
+
+	对于 50\% 的数据，$|s|\le 100$。
+
+	对于 70\% 的数据，$|s|\le 10^{3}$。
+
+	对于 100\% 的数据，$1\le |s|\le 10^{5}$，$\Sigma\subseteq\{\texttt{0},\texttt{1},\texttt{2}\}$。
 
 	$|s|$ 表示字符串 $s$ 的长度，$\Sigma$ 表示字符集。
 
@@ -186,10 +187,9 @@ int main(){
 
 	\subsubsection{数据范围}
 
-	\begin{itemize}
-		\item 对于 50\% 的数据，$n,m\le 100$。
-		\item 对于 100\% 的数据，$1\le n,m\le 5\times 10^{3}$。
-	\end{itemize}
+	对于 50\% 的数据，$n,m\le 100$。
+
+	对于 100\% 的数据，$1\le n,m\le 5\times 10^{3}$。
 
 	\subsection{题解}
 
@@ -315,4 +315,112 @@ int main(){
 	第二行 $n$ 个整数 $c_{i}$。
 
 	第三行 $n$ 个整数 $cost_{i}$。
+
+	\subsection{输出格式}
+
+	一行一个整数表示答案。
+
+	\subsection{输入输出样例}
+
+	\begin{tabularx}{\textwidth}{|X|X|}
+		\hline
+		\textbf{输入 \texttt{\#}1} & \textbf{输出 \texttt{\#}1} \\
+		\hline
+		\texttt{2 10 7 11} & \texttt{11} \\
+		\texttt{2 10} & \\
+		\texttt{6 1} & \\
+		\hline
+		\textbf{输入 \texttt{\#}2} & \textbf{输出 \texttt{\#}2} \\
+		\hline
+		\texttt{5 1 4 6} & \texttt{10} \\ 
+		\texttt{3 4 6 5 1} & \\
+		\texttt{3 0 10 2 9} & \\
+		\hline
+	\end{tabularx}
+
+	\subsection{说明/提示}
+
+	\subsubsection{数据范围}
+
+	对于 40\% 的数据，$1\le n\le 100$，$\displaystyle 1\le \sum_{i=1}^{n} c_{i} \le 100$。
+	
+	对于 100\% 的数据，$1\le n\le 10^{3}$，$\displaystyle 1\le \sum_{i=1}^n c_{i} \le 10^{4}$，$0\le c_{i}\le 10^{4}$，$0\le W,B,X,cost_{i}\le 10^{9}$。
+
+	\subsection{题解}
+
+	首先，容易想到如下的状态设计：设 $f_{i,j}$ 表示只摘前 $i$ 棵树上的苹果，且当前能量为 $j$ 时能摘到的最多的苹果。
+
+	很快你会发现这很不现实—— $W\le 10^9$，我们不能开下这么大的数组！
+
+	考虑从 $\displaystyle\sum_{i=1}^n c_i\le 10^4$ 入手，改变状态如下：
+
+	设 $f_{i,j}$ 表示前 $i$ 棵树，摘了 $j$ 个苹果的——等等，摘了 $j$ 个苹果的什么呀？
+
+	考察题目的变量，你会发先有三个：摘了的 苹果树 的个数，摘到的 苹果 的个数，能量。
+
+	\begin{quote}
+		dp 第 $\times$ 定理：一般的，设计状态时要把题目中所有变量包含进状态里。
+	\end{quote}
+
+	那么，我们可以得到最终的状态定义：\textbf{设 $f_{i,j}$ 表示前 $i$ 棵树，摘了 $j$ 个苹果的最大能量}（当然是能量越多越好了）。
+
+	那么，最终的答案就是使得 $f_{n,i}\ge 0$ 的最大的 $i$。
+
+	有了状态定义，转移方程和初始化就很简单了：
+
+	\[
+		f_{i,j}=\max_{k\in[0,c_i]}\{\min\{f_{i-1,j-k}-k\cdot cost_i+X,W+jB\}\}\quad\text{if }f_{i-1,j-k}-k\cdot cost_i \ge 0
+	\]
+
+	初始化：
+
+	\[
+		f_{i,j}=\begin{cases}W&i=0\land j=0\\-\infty&\text{otherwise}\end{cases}
+	\]
+
+	开一个 $10^3\times 10^4$ 的 \texttt{long long} 数组可能会爆空间（我懒得算），可以滚动数组优化空间。
+
+	时间复杂度 $\displaystyle\mathcal O\left(\left(\sum_{i=1}^n c_{i}\right)^2\right)$。
+
+	\subsection{代码}
+
+	\begin{lstlisting}
+#include<cstdio>
+#include<algorithm>
+#include<cstring>
+
+typedef long long ll;
+
+const int N=1e3;
+const int M=1e4;
+const ll inf=0x3f3f3f3f3f3f3f3fLL;
+
+int n,W,B,X,c[N+10],cost[N+10],sumc;
+ll f[2][M+10];
+
+int main(){
+	scanf("%d%d%d%d",&n,&W,&B,&X);
+	for(int i=1;i<=n;i++)
+		scanf("%d",c+i),sumc+=c[i];
+	for(int i=1;i<=n;i++)
+		scanf("%d",cost+i);
+	memset(f,~0x3f,sizeof(f));
+	f[0][0]=W;
+	for(int i=1;i<=n;i++)
+		for(int j=0;j<=sumc;j++)
+			for(int k=0;k<=std::min(c[i],j);k++){
+				ll tmp=f[(i&1)^1][j-k]-1LL*k*cost[i];
+				if(tmp<0)continue;
+				tmp+=X;
+				if(tmp>W+1LL*j*B)tmp=W+1LL*j*B;
+				f[i&1][j]=std::max(f[i&1][j],tmp);
+			}
+	for(int i=sumc;~i;i--)
+		if(f[n&1][i]>=0){
+			printf("%d\n",i);
+			return 0;
+		}
+	return 0;
+}
+	\end{lstlisting}
 \end{document}

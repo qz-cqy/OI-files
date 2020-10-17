@@ -380,6 +380,12 @@ int main(){
 
 	开一个 $10^3\times 10^4$ 的 \texttt{long long} 数组可能会爆空间（我懒得算），可以滚动数组优化空间。
 
+	Upd：刚算了一下，不会炸。
+
+	\[
+		\text{所需空间 }=\frac{10^{3}\times 10^{4}\times 8}{1024\times 1024}\approx 80\text{ MB}
+	\]
+
 	时间复杂度 $\displaystyle\mathcal O\left(\left(\sum_{i=1}^n c_{i}\right)^2\right)$。
 
 	\subsection{代码}
@@ -396,7 +402,7 @@ const int M=1e4;
 const ll inf=0x3f3f3f3f3f3f3f3fLL;
 
 int n,W,B,X,c[N+10],cost[N+10],sumc;
-ll f[2][M+10];
+ll f[2][M+10]; // 不滚动： f[N+10][M+10];
 
 int main(){
 	scanf("%d%d%d%d",&n,&W,&B,&X);
@@ -409,11 +415,11 @@ int main(){
 	for(int i=1;i<=n;i++)
 		for(int j=0;j<=sumc;j++)
 			for(int k=0;k<=std::min(c[i],j);k++){
-				ll tmp=f[(i&1)^1][j-k]-1LL*k*cost[i];
+				ll tmp=f[(i&1)^1][j-k]-1LL*k*cost[i]; // 不滚动： f[i-1][j-k]-1LL*k*cost[i]
 				if(tmp<0)continue;
 				tmp+=X;
 				if(tmp>W+1LL*j*B)tmp=W+1LL*j*B;
-				f[i&1][j]=std::max(f[i&1][j],tmp);
+				f[i&1][j]=std::max(f[i&1][j],tmp); // 不滚动： f[i][j]=std::max(f[i][j],tmp)
 			}
 	for(int i=sumc;~i;i--)
 		if(f[n&1][i]>=0){
